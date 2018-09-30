@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          [Hexo] Theme BeanTech - Qiqiang Blog
+          kubernetess搭建 - Qiqiang Blog
         
     </title>
 
-    <link rel="canonical" href="http://yoursite-url/2017/03/18/hexo-theme-beantech/">
+    <link rel="canonical" href="http://yoursite-url/2018/09/30/kubernetess搭建/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -69,7 +69,7 @@
 <style type="text/css">
     header.intro-header{
         
-            background-image: url('Demo.png')
+            background-image: url('')
             /*post*/
         
     }
@@ -86,16 +86,14 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#Hexo" title="Hexo">Hexo</a>
-                            
-                              <a class="tag" href="/tags/#Blog" title="Blog">Blog</a>
+                              <a class="tag" href="/tags/#tools" title="tools">tools</a>
                             
                         </div>
-                        <h1>[Hexo] Theme BeanTech</h1>
-                        <h2 class="subheading">This is hexo theme Demo.</h2>
+                        <h1>kubernetess搭建</h1>
+                        <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by Chris Qiqiang(ECNU) on
-                            2017-03-18
+                            2018-09-30
                         </span>
                     </div>
                 
@@ -212,36 +210,16 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <blockquote>
-<p>Ported Theme of <a href="https://github.com/Huxpro/huxpro.github.io" target="_blank" rel="noopener">Hux Blog</a>, Thank <a href="https://github.com/Huxpro" target="_blank" rel="noopener">Huxpro</a> for designing such a flawless theme.</p>
-<p>This BeanTech theme created by <a href="http://beantech.org" target="_blank" rel="noopener">YuHsuan</a> modified from the original Porter <a href="http://kaijun.rocks/hexo-theme-huxblog/" target="_blank" rel="noopener">Kaijun</a></p>
-</blockquote>
-<h1 id="Live-Demo"><a href="#Live-Demo" class="headerlink" title="Live Demo"></a><a href="http://beantech.org" target="_blank" rel="noopener">Live Demo</a></h1><hr>
-<p><img src="http://beantech.org/img/beantech-desktop.png" alt="BeanTech Desktop"></p>
-<h1 id="Usage"><a href="#Usage" class="headerlink" title="Usage"></a>Usage</h1><hr>
-<p>I publish the whole project for your convenience, so you can just follow the instruction down below, then you can easily customiz your own blog!</p>
-<p>Let’s begin!!!</p>
-<h2 id="Init"><a href="#Init" class="headerlink" title="Init"></a>Init</h2><hr>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/YenYuHsuan/hexo-theme-beantech.git ./hexo-beantech</span><br><span class="line"><span class="built_in">cd</span> hexo-beantech</span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
-<h2 id="Modify"><a href="#Modify" class="headerlink" title="Modify"></a>Modify</h2><hr>
-<p>Modify <code>_config.yml</code> file with your own info.<br>Especially the section:</p>
-<h3 id="Deployment"><a href="#Deployment" class="headerlink" title="Deployment"></a>Deployment</h3><p>Replace to your own repo!<br><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line"><span class="attr">  type:</span> <span class="string">git</span></span><br><span class="line"><span class="attr">  repo:</span> <span class="attr">https://github.com/&lt;yourAccount&gt;/&lt;repo&gt;</span></span><br><span class="line"><span class="attr">  branch:</span> <span class="string">&lt;your-branch&gt;</span></span><br></pre></td></tr></table></figure></p>
-<h3 id="Sidebar-settings"><a href="#Sidebar-settings" class="headerlink" title="Sidebar settings"></a>Sidebar settings</h3><p>Copy your avatar image to <code>&lt;root&gt;/img/</code> and modify the <code>_config.yml</code>:<br><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">sidebar:</span> <span class="literal">true</span>    <span class="comment"># whether or not using Sidebar.</span></span><br><span class="line"><span class="attr">sidebar-about-description:</span> <span class="string">"&lt;your description&gt;"</span></span><br><span class="line"><span class="attr">sidebar-avatar:</span> <span class="string">img/&lt;your</span> <span class="string">avatar</span> <span class="string">path&gt;</span></span><br></pre></td></tr></table></figure></p>
-<p>and activate your personal widget you like<br><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">widgets:</span>         <span class="comment"># here are widget you can use, you can comment out</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">featured-tags</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">short-about</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">recent-posts</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">friends-blog</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">archive</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">category</span></span><br></pre></td></tr></table></figure></p>
-<p>if you want to add sidebar widget, please add at <code>layout/_widget</code>.</p>
-<h3 id="Signature-Setup"><a href="#Signature-Setup" class="headerlink" title="Signature Setup"></a>Signature Setup</h3><p>Copy your signature image to <code>&lt;root&gt;/img/signature</code> and modify the <code>_config.yml</code>:<br><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">signature:</span> <span class="literal">true</span>   <span class="comment"># show signature</span></span><br><span class="line"><span class="attr">signature-img:</span> <span class="string">img/signature/&lt;your-signature-ID&gt;</span></span><br></pre></td></tr></table></figure></p>
-<h3 id="Go-to-top-icon-Setup"><a href="#Go-to-top-icon-Setup" class="headerlink" title="Go to top icon Setup"></a>Go to top icon Setup</h3><p>My icon is using iron man, you can change to your own icon at <code>css/image</code>.</p>
-<h3 id="Post-tag"><a href="#Post-tag" class="headerlink" title="Post tag"></a>Post tag</h3><p>You can decide to show post tags or not.<br><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">home_posts_tag:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure></p>
-<p><img src="home_posts_tag-true.png" alt="home_posts_tag-true"><br><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">home_posts_tag:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure></p>
-<p><img src="home_posts_tag-false.png" alt="home_posts_tag-false"></p>
-<h3 id="Markdown-render"><a href="#Markdown-render" class="headerlink" title="Markdown render"></a>Markdown render</h3><p>My markdown render engine plugin is <a href="https://github.com/celsomiranda/hexo-renderer-markdown-it" target="_blank" rel="noopener">hexo-renderer-markdown-it</a>.<br><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Markdown-it config</span></span><br><span class="line"><span class="comment">## Docs: https://github.com/celsomiranda/hexo-renderer-markdown-it/wiki</span></span><br><span class="line"><span class="attr">markdown:</span></span><br><span class="line"><span class="attr">  render:</span></span><br><span class="line"><span class="attr">    html:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">    xhtmlOut:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">    breaks:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">    linkify:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">    typographer:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">    quotes:</span> <span class="string">'“”‘’'</span></span><br></pre></td></tr></table></figure></p>
-<p>and if you want to change the header anchor ‘ℬ’, you can go to <code>layout/post.ejs</code> to change it.<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span>(<span class="string">"https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js"</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        anchors.options = &#123;</span><br><span class="line">          visible: <span class="string">'hover'</span>,</span><br><span class="line">          placement: <span class="string">'left'</span>,</span><br><span class="line">          icon: ℬ <span class="comment">// this is the header anchor "unicode" icon</span></span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure></p>
-<h2 id="Hexo-Basics"><a href="#Hexo-Basics" class="headerlink" title="Hexo Basics"></a>Hexo Basics</h2><hr>
-<p>Some hexo command:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hexo new post <span class="string">"&lt;post name&gt;"</span> <span class="comment"># you can change post to another layout if you want</span></span><br><span class="line">hexo clean &amp;&amp; hexo generate <span class="comment"># generate the static file</span></span><br><span class="line">hexo server <span class="comment"># run hexo in local environment</span></span><br><span class="line">hexo deploy <span class="comment"># hexo will push the static files automatically into the specific branch(gh-pages) of your repo!</span></span><br></pre></td></tr></table></figure></p>
-<h1 id="Have-fun"><a href="#Have-fun" class="headerlink" title="Have fun ^_^"></a>Have fun ^_^</h1><hr>
-<!-- Place this tag in your head or just before your close body tag. -->
-<p><script async defer src="https://buttons.github.io/buttons.js"></script><br><!-- Place this tag where you want the button to render. --></p>
-<p>Please <a class="github-button" href="https://github.com/YenYuHsuan/hexo-theme-beantech" data-icon="octicon-star" aria-label="Star YenYuHsuan/hexo-theme-beantech on GitHub" target="_blank" rel="noopener">Star</a> this Project if you like it! <a class="github-button" href="https://github.com/YenYuHsuan" aria-label="Follow @YenYuHsuan on GitHub" target="_blank" rel="noopener">Follow</a> would also be appreciated!<br>Peace!</p>
+                <p>因为实验原因需要搭设一个简单的kubernetes集群，实现分布式TensorFlow的运行。踩了不少的坑，下面说一下自己的一些总结。<br>kubernetes集群分为master节点和n个node节点，master上运行的服务有kube-apiserver、kube-controllermanager、kube-scheduler，作用不作赘诉，node运行的服务是kubelet、kube-proxy。要安装kubernetes，首先要搭建etcd集群，而后在每个机器上安装完整的kubernetes或者相应的服务，修改配置文件使得kubernetes集群初步建成。然后利用flannel这个工具将集群内部网络打通，最后运行一个kube-dns的服务提供集群内部dns解析的工作。<br>官方有搭建过程的资料，不过没什么可读性，网上有很多搭建教程博客，自己试过几个，出现bug是难免的，有时候真的挺难找到问题所在，尤其是运行dns的时候。主要原因是kubernetes版本，导入的镜像版本不尽相同。dns部分网上很多教程还是在装skydns，自从kubernetes1.4之后好像就变成了kubedns+dnsmasq的组合，而且网上的博客如果强行几个凑一起，会出现一些意料以外的错误。自己遇到很多坑，装了好几遍，在kubernetes中文社区找到了一个良心博客。网址：<br><a href="https://www.kubernetes.org.cn/4041.html" target="_blank" rel="noopener">https://www.kubernetes.org.cn/4041.html</a><br>下面说一下我的安装步骤，大致和这个社区帖相同，主要步骤是按照上面的方法走（因为自己是个小萌新，会补上一点对萌新不友好的小疏漏）：</p>
+<h2 id="准备工具"><a href="#准备工具" class="headerlink" title="准备工具"></a>准备工具</h2><p>从百度云上下载压缩包（整体来说这个压缩包包含了搭建kubernetes集群的所有必须文件）之后，如果是搭建本地集群直接u盘拷就行了，如果是云端机器的话需要用到xshell+xftp整合版，软件装好可能会缺相应的dll和vc的两个库，<br><a href="https://www.portablesoft.org/xshell-xftp-integrated/。" target="_blank" rel="noopener">https://www.portablesoft.org/xshell-xftp-integrated/。</a><br>装好之后，通过ssh连接机器，利用xftp可以直接将本地文件夹复制到云端机器上。集群内的所有的机器都需要复制。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>  也许很多博客上的第一步就是修改hosts文件，虽然这样是为了集群节点看起来比较清晰，但是相信我，没什么用，自己做实验集群小的时候没什么卵用，如果设置不当在你之后配置文件运行程序的时候会出现预料之外的bug。所以在安装过程中就按刚才说的那个博客上的步骤，所有地方都用ipv4的地址。以下是一些注意点。<br>（1）<code>tar -xzvf k8s_v1.10.0_install.tar.gz</code>    #解压<br>（2）<code>cd /home/centos/k8s_v1.10.0_install/etcd</code>   #进入etcd文件夹<br>（3）编辑install_etcd.sh，将其中的CURRENT_HOST_IP=<code>ifconfig ens192 | grep &#39;inet &#39; | awk &#39;{ print $2}&#39;</code> 以及ETCD_LISTEN_IP 修改为每个机器对应的ip（源文件的最外层引号不能用的）保存。三个机器同时运行install_etcd.sh。<br>（4）此时etcdctl member list是行不通的，因为bash没有这个命令，但是systemctl status etcd是active的，进入bin目录，执行./etcdctl member list 发现是没问题的，所以只是没加进环境变量而已。修改环境变量：<br><code>vim /etc/profile</code>或者<code>vim ~/.bashrc</code><br>在结尾处加上<code>export PATH=$PATH:your_etcd_bin_path</code><br>（5）安装flannel和docker不需要修改install_xx.sh文件，如果机器特殊可能需要修改。直接运行即可，安装kubernetes时，node节点跟的参数也是主节点的ip，别搞错了。安装完了同样是找不到kubectl命令，这时同（4）一样将kubernetes/bin加入环境变量即可。<br>（6）在node上，进入kubernetes/images文件夹，利用docker load -i xxx.tar命令将其所有镜像到本地。虽然我们的机器可以联网，但是人家配置文件上写的都是本地的镜像，改起来比较麻烦，就直接load本地就行了，方便。<br> (7)   在master上，进入addons/kube-dns,修改yaml文件中的kube-master-url 为我们master的ip地址，cluster-ip没必要改。然后<code>kubectl create -f kube-dns.yaml</code>。利用<code>kubectl get pods --all-namespces</code>查看pod是否正常运行。如何status为running，<br> (8) 为了验证我们的dns有解析功能，需要busybox工具，可以进入kubernetes/image文件夹，创建他给的pod，也可以自己网上查一个简单的busybox。</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">apiVersion</span>: v1</span><br><span class="line"><span class="attribute">kind</span>: Pod</span><br><span class="line"><span class="attribute">metadata</span>: </span><br><span class="line">   <span class="attribute">name</span>: busybox</span><br><span class="line">   <span class="attribute">namespace</span>: default</span><br><span class="line"><span class="attribute">spec</span>:  </span><br><span class="line">   <span class="attribute">containers</span>:</span><br><span class="line">      - <span class="attribute">image</span>: <span class="attribute">kube-registry</span>:<span class="number">5000</span>/busybox</span><br><span class="line">        <span class="attribute">command</span>:</span><br><span class="line">          - sleep</span><br><span class="line">          - <span class="string">"3600"</span></span><br><span class="line">        <span class="attribute">imagePullPolicy</span>: IfNotPresent</span><br><span class="line">        <span class="attribute">name</span>: busybox</span><br><span class="line">   <span class="attribute">restartPolicy</span>: Always</span><br></pre></td></tr></table></figure>
+<p>好了，接下来就是检测了，<code>kubectl exec busybox -- nslookup kubernetes</code>,如果解析出来，就代表成功了。<br>kube-dns检测<br>因为我用的是亚马逊上的机器，所以dashboard没啥用就不装了。最后可以使用<code>iptables -P FORWARD ACCEPT</code>将底层防火墙关掉，这个其实挺有用的，自行体会~每个人装的时候都会碰到不一样的问题，可以通过kubectl status/logs等命令查看错误原因，再多回顾一下是不是自己漏了什么。祝好~</p>
+<h2 id="注意事项："><a href="#注意事项：" class="headerlink" title="注意事项："></a>注意事项：</h2><p>不要因为机器上有了docker就不装docker了，我有一次没有装包里的docker就导致了版本的不兼容，机器上跑的是18.06，而他给的是docker18.03版本的安装包，最好按照本文顺序一步一步来。所以如果出现意料之外的问题，重装可能比找bug会更容易解决问题。</p>
+<p>附：给几个比较实用的链接：</p>
+<p><a href="https://blog.csdn.net/devopser/article/details/79953440" target="_blank" rel="noopener">https://blog.csdn.net/devopser/article/details/79953440</a></p>
+<p><a href="http://docs.kubernetes.org.cn/683.html" target="_blank" rel="noopener">http://docs.kubernetes.org.cn/683.html</a></p>
+<p><a href="https://blog.csdn.net/hxpjava1/article/details/79270473" target="_blank" rel="noopener">https://blog.csdn.net/hxpjava1/article/details/79270473</a></p>
 
                 
 
@@ -249,10 +227,10 @@
                 <!-- Pager -->
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/2018/09/29/总要心有所栖的群居动物/" data-toggle="tooltip" data-placement="top" title="总要心有所栖的群居动物">&larr; Previous Post</a>
-                        </li>
                     
+                        <li class="next">
+                            <a href="/2018/09/30/Scalable-Overload-Control-for-Large-scale-Microservice-Architecture/" data-toggle="tooltip" data-placement="top" title="Scalable Overload Control for Large-scale Microservice Architecture">Next Post &rarr;</a>
+                        </li>
                     
                 </ul>
 
@@ -276,17 +254,6 @@
             <!-- Tabe of Content -->
             <!-- Table of Contents -->
 
-    
-      <aside id="sidebar">
-        <div id="toc" class="toc-article">
-        <strong class="toc-title">Contents</strong>
-        
-          <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#Live-Demo"><span class="toc-nav-number">1.</span> <span class="toc-nav-text">Live Demo</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#Usage"><span class="toc-nav-number">2.</span> <span class="toc-nav-text">Usage</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Init"><span class="toc-nav-number">2.1.</span> <span class="toc-nav-text">Init</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Modify"><span class="toc-nav-number">2.2.</span> <span class="toc-nav-text">Modify</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#Deployment"><span class="toc-nav-number">2.2.1.</span> <span class="toc-nav-text">Deployment</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#Sidebar-settings"><span class="toc-nav-number">2.2.2.</span> <span class="toc-nav-text">Sidebar settings</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#Signature-Setup"><span class="toc-nav-number">2.2.3.</span> <span class="toc-nav-text">Signature Setup</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#Go-to-top-icon-Setup"><span class="toc-nav-number">2.2.4.</span> <span class="toc-nav-text">Go to top icon Setup</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#Post-tag"><span class="toc-nav-number">2.2.5.</span> <span class="toc-nav-text">Post tag</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#Markdown-render"><span class="toc-nav-number">2.2.6.</span> <span class="toc-nav-text">Markdown render</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#Hexo-Basics"><span class="toc-nav-number">2.3.</span> <span class="toc-nav-text">Hexo Basics</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#Have-fun"><span class="toc-nav-number">3.</span> <span class="toc-nav-text">Have fun ^_^</span></a></li></ol>
-        
-        </div>
-      </aside>
-    
-
                 
             <!-- Sidebar Container -->
             <div class="
@@ -301,9 +268,7 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#Hexo" title="Hexo">Hexo</a>
-                        
-                          <a class="tag" href="/tags/#Blog" title="Blog">Blog</a>
+                          <a class="tag" href="/tags/#tools" title="tools">tools</a>
                         
                     </div>
                 </section>
@@ -338,8 +303,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "your-disqus-ID";
-    var disqus_identifier = "http://yoursite-url/2017/03/18/hexo-theme-beantech/";
-    var disqus_url = "http://yoursite-url/2017/03/18/hexo-theme-beantech/";
+    var disqus_identifier = "http://yoursite-url/2018/09/30/kubernetess搭建/";
+    var disqus_url = "http://yoursite-url/2018/09/30/kubernetess搭建/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
