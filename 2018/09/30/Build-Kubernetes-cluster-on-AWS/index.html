@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          总要心有所栖的群居动物 - Qiqiang Blog
+          Build Kubernetes cluster on AWS - Qiqiang Blog
         
     </title>
 
-    <link rel="canonical" href="http://yoursite-url/2018/09/29/总要心有所栖的群居动物/">
+    <link rel="canonical" href="http://yoursite-url/2018/09/30/Build-Kubernetes-cluster-on-AWS/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -69,7 +69,7 @@
 <style type="text/css">
     header.intro-header{
         
-            background-image: url('header.png')
+            background-image: url('')
             /*post*/
         
     }
@@ -86,14 +86,14 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#博客介绍" title="博客介绍">博客介绍</a>
+                              <a class="tag" href="/tags/#tools" title="tools">tools</a>
                             
                         </div>
-                        <h1>总要心有所栖的群居动物</h1>
+                        <h1>Build Kubernetes cluster on AWS</h1>
                         <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by Chris Qiqiang(ECNU) on
-                            2018-09-29
+                            2018-09-30
                         </span>
                     </div>
                 
@@ -210,9 +210,16 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h1 id="博客初衷"><a href="#博客初衷" class="headerlink" title="博客初衷"></a>博客初衷</h1><h2 id="关于文章"><a href="#关于文章" class="headerlink" title="关于文章"></a>关于文章</h2><p>作为一个伪文艺青年，之前对生活有所感悟偶尔会花一点时间去记录一下，或者在空间或者在微博或者在豆瓣或者在知乎。当自己沉浸在某一个世界不能自拔的时候，往往想找身边的人进行分享，但是人们都长大了，朋友们也不再像小时候的玩伴一样随时恭候。于是就有了所谓的文章，所谓的抒情。</p>
-<h2 id="关于笔记"><a href="#关于笔记" class="headerlink" title="关于笔记"></a>关于笔记</h2><p>不知不觉研究生的生活也已经过了一个月，切身认识到自己才疏学浅。每次见到大佬的成果都惶惶而恐=_=，研究方向也没确定，也不知道自己喜欢什么擅长什么，总之尽量把之前的坑慢慢填好，在自己看的东西上多思考。我始终相信，什么时候开始努力都还不算晚，所以关于学习笔记，简书CSDN之类我也觉得太麻烦。</p>
-<h2 id="关于自己"><a href="#关于自己" class="headerlink" title="关于自己"></a>关于自己</h2><p>人嘛，虽然越长大越孤单，但是仍然需要有所寄托。于是有了空间分享，有了微博，有了抖音，没有盈利，只是渴望被知道，渴望被认可。有了属于自己的博客，就可以写点自己的东西，无论是学习笔记还是文章感悟，分享跟身边的朋友，便就足够。</p>
+                <p>因为实验原因需要搭设一个简单的kubernetes集群，实现分布式TensorFlow的运行。踩了不少的坑，下面说一下自己的一些总结。<br>kubernetes集群分为master节点和n个node节点，master上运行的服务有kube-apiserver、kube-controllermanager、kube-scheduler，作用不作赘诉，node运行的服务是kubelet、kube-proxy。要安装kubernetes，首先要搭建etcd集群，而后在每个机器上安装完整的kubernetes或者相应的服务，修改配置文件使得kubernetes集群初步建成。然后利用flannel这个工具将集群内部网络打通，最后运行一个kube-dns的服务提供集群内部dns解析的工作。<br>官方有搭建过程的资料，不过没什么可读性，网上有很多搭建教程博客，自己试过几个，出现bug是难免的，有时候真的挺难找到问题所在，尤其是运行dns的时候。主要原因是kubernetes版本，导入的镜像版本不尽相同。dns部分网上很多教程还是在装skydns，自从kubernetes1.4之后好像就变成了kubedns+dnsmasq的组合，而且网上的博客如果强行几个凑一起，会出现一些意料以外的错误。自己遇到很多坑，装了好几遍，在kubernetes中文社区找到了一个良心博客。网址：<br><a href="https://www.kubernetes.org.cn/4041.html" target="_blank" rel="noopener">https://www.kubernetes.org.cn/4041.html</a><br>下面说一下我的安装步骤，大致和这个社区帖相同，主要步骤是按照上面的方法走（因为自己是个小萌新，会补上一点对萌新不友好的小疏漏）：</p>
+<h2 id="准备工具"><a href="#准备工具" class="headerlink" title="准备工具"></a>准备工具</h2><p>从百度云上下载压缩包（整体来说这个压缩包包含了搭建kubernetes集群的所有必须文件）之后，如果是搭建本地集群直接u盘拷就行了，如果是云端机器的话需要用到xshell+xftp整合版，软件装好可能会缺相应的dll和vc的两个库，<br><a href="https://www.portablesoft.org/xshell-xftp-integrated/。" target="_blank" rel="noopener">https://www.portablesoft.org/xshell-xftp-integrated/。</a><br>装好之后，通过ssh连接机器，利用xftp可以直接将本地文件夹复制到云端机器上。集群内的所有的机器都需要复制。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>  也许很多博客上的第一步就是修改hosts文件，虽然这样是为了集群节点看起来比较清晰，但是相信我，没什么用，自己做实验集群小的时候没什么卵用，如果设置不当在你之后配置文件运行程序的时候会出现预料之外的bug。所以在安装过程中就按刚才说的那个博客上的步骤，所有地方都用ipv4的地址。以下是一些注意点。<br>（1）<code>tar -xzvf k8s_v1.10.0_install.tar.gz</code>    #解压<br>（2）<code>cd /home/centos/k8s_v1.10.0_install/etcd</code>   #进入etcd文件夹<br>（3）编辑install_etcd.sh，将其中的CURRENT_HOST_IP=<code>ifconfig ens192 | grep &#39;inet &#39; | awk &#39;{ print $2}&#39;</code> 以及ETCD_LISTEN_IP 修改为每个机器对应的ip（源文件的最外层引号不能用的）保存。三个机器同时运行install_etcd.sh。<br>（4）此时etcdctl member list是行不通的，因为bash没有这个命令，但是systemctl status etcd是active的，进入bin目录，执行./etcdctl member list 发现是没问题的，所以只是没加进环境变量而已。修改环境变量：<br><code>vim /etc/profile</code>或者<code>vim ~/.bashrc</code><br>在结尾处加上<code>export PATH=$PATH:your_etcd_bin_path</code><br>（5）安装flannel和docker不需要修改install_xx.sh文件，如果机器特殊可能需要修改。直接运行即可，安装kubernetes时，node节点跟的参数也是主节点的ip，别搞错了。安装完了同样是找不到kubectl命令，这时同（4）一样将kubernetes/bin加入环境变量即可。<br>（6）在node上，进入kubernetes/images文件夹，利用docker load -i xxx.tar命令将其所有镜像到本地。虽然我们的机器可以联网，但是人家配置文件上写的都是本地的镜像，改起来比较麻烦，就直接load本地就行了，方便。<br> (7)   在master上，进入addons/kube-dns,修改yaml文件中的kube-master-url 为我们master的ip地址，cluster-ip没必要改。然后<code>kubectl create -f kube-dns.yaml</code>。利用<code>kubectl get pods --all-namespces</code>查看pod是否正常运行。如何status为running，<br> (8) 为了验证我们的dns有解析功能，需要busybox工具，可以进入kubernetes/image文件夹，创建他给的pod，也可以自己网上查一个简单的busybox。</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">apiVersion</span>: v1</span><br><span class="line"><span class="attribute">kind</span>: Pod</span><br><span class="line"><span class="attribute">metadata</span>: </span><br><span class="line">   <span class="attribute">name</span>: busybox</span><br><span class="line">   <span class="attribute">namespace</span>: default</span><br><span class="line"><span class="attribute">spec</span>:  </span><br><span class="line">   <span class="attribute">containers</span>:</span><br><span class="line">      - <span class="attribute">image</span>: <span class="attribute">kube-registry</span>:<span class="number">5000</span>/busybox</span><br><span class="line">        <span class="attribute">command</span>:</span><br><span class="line">          - sleep</span><br><span class="line">          - <span class="string">"3600"</span></span><br><span class="line">        <span class="attribute">imagePullPolicy</span>: IfNotPresent</span><br><span class="line">        <span class="attribute">name</span>: busybox</span><br><span class="line">   <span class="attribute">restartPolicy</span>: Always</span><br></pre></td></tr></table></figure>
+<p>好了，接下来就是检测了，<code>kubectl exec busybox -- nslookup kubernetes</code>,如果解析出来，就代表成功了。<br>kube-dns检测<br>因为我用的是亚马逊上的机器，所以dashboard没啥用就不装了。最后可以使用<code>iptables -P FORWARD ACCEPT</code>将底层防火墙关掉，这个其实挺有用的，自行体会~每个人装的时候都会碰到不一样的问题，可以通过kubectl status/logs等命令查看错误原因，再多回顾一下是不是自己漏了什么。祝好~</p>
+<h2 id="注意事项："><a href="#注意事项：" class="headerlink" title="注意事项："></a>注意事项：</h2><p>不要因为机器上有了docker就不装docker了，我有一次没有装包里的docker就导致了版本的不兼容，机器上跑的是18.06，而他给的是docker18.03版本的安装包，最好按照本文顺序一步一步来。所以如果出现意料之外的问题，重装可能比找bug会更容易解决问题。</p>
+<p>附：给几个比较实用的链接：</p>
+<p><a href="https://blog.csdn.net/devopser/article/details/79953440" target="_blank" rel="noopener">https://blog.csdn.net/devopser/article/details/79953440</a></p>
+<p><a href="http://docs.kubernetes.org.cn/683.html" target="_blank" rel="noopener">http://docs.kubernetes.org.cn/683.html</a></p>
+<p><a href="https://blog.csdn.net/hxpjava1/article/details/79270473" target="_blank" rel="noopener">https://blog.csdn.net/hxpjava1/article/details/79270473</a></p>
 
                 
 
@@ -220,13 +227,9 @@
                 <!-- Pager -->
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/2018/09/30/Scalable-Overload-Control-for-Large-scale-Microservice-Architecture/" data-toggle="tooltip" data-placement="top" title="Scalable Overload Control for Large-scale Microservice Architecture">&larr; Previous Post</a>
-                        </li>
-                    
                     
                         <li class="next">
-                            <a href="/2017/03/18/hexo-theme-beantech/" data-toggle="tooltip" data-placement="top" title="[Hexo] Theme BeanTech">Next Post &rarr;</a>
+                            <a href="/2018/09/30/Scalable-Overload-Control-for-Large-scale-Microservice-Architecture/" data-toggle="tooltip" data-placement="top" title="Scalable Overload Control for Large-scale Microservice Architecture">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -265,7 +268,7 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#博客介绍" title="博客介绍">博客介绍</a>
+                          <a class="tag" href="/tags/#tools" title="tools">tools</a>
                         
                     </div>
                 </section>
@@ -300,8 +303,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "your-disqus-ID";
-    var disqus_identifier = "http://yoursite-url/2018/09/29/总要心有所栖的群居动物/";
-    var disqus_url = "http://yoursite-url/2018/09/29/总要心有所栖的群居动物/";
+    var disqus_identifier = "http://yoursite-url/2018/09/30/Build-Kubernetes-cluster-on-AWS/";
+    var disqus_url = "http://yoursite-url/2018/09/30/Build-Kubernetes-cluster-on-AWS/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
