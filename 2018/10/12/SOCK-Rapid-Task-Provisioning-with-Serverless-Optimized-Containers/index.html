@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          About - Qiqiang Blog
+          SOCK: Rapid Task Provisioning with Serverless-Optimized Containers - Qiqiang Blog
         
     </title>
 
-    <link rel="canonical" href="http://yoursite-url/about/">
+    <link rel="canonical" href="http://yoursite-url/2018/10/12/SOCK-Rapid-Task-Provisioning-with-Serverless-Optimized-Containers/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -69,8 +69,8 @@
 <style type="text/css">
     header.intro-header{
         
-            background-image: url('/img/header_img/about.png')
-            /*page*/
+            background-image: url('')
+            /*post*/
         
     }
     
@@ -83,10 +83,20 @@
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                 
-                    <div class="site-heading">
-                        <h1>About</h1>
-                        <!--<hr class="small">-->
-                        <span class="subheading">A graduate student from ECNU(East China Normal University)</span>
+                    <div class="post-heading">
+                        <div class="tags">
+                            
+                              <a class="tag" href="/tags/#Paper" title="Paper">Paper</a>
+                            
+                              <a class="tag" href="/tags/#ATC" title="ATC">ATC</a>
+                            
+                        </div>
+                        <h1>SOCK: Rapid Task Provisioning with Serverless-Optimized Containers</h1>
+                        <h2 class="subheading"></h2>
+                        <span class="meta">
+                            Posted by Chris Qiqiang(ECNU) on
+                            2018-10-12
+                        </span>
                     </div>
                 
 
@@ -189,217 +199,172 @@
 
 
     <!-- Main Content -->
-    <!-- Main Content -->
-<div class="container">
-    <div class="row">
-        
+    <!-- Modify by Yu-Hsuan Yen -->
 
-<!-- USE SIDEBAR -->
-    <!-- Post Container -->
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
             <div class="
-                col-lg-8 col-lg-offset-1
-                col-md-8 col-md-offset-1
-                col-sm-12
-                col-xs-12
-                post-container
-            ">
-            
-                <blockquote>
-<p>不想一生碌碌无为，老了却称赞自己平凡可贵。<br>不要画地为牢，不被困于枷锁，Just Do It！！</p>
-</blockquote>
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
 
+                <h2 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h2><p>这篇文章讲了一个有关优化容器启动时间的方案，因为docker的到来，相信很多人对于容器的概念并不陌生，但是可能也存在一些偏差。Docker并不单单传统意义上的容器，而是早就存在的Linux container的一个管理收集者。<br>维基上是这么对docker定义的：Docker是一个开放源代码软件项目，让应用程序布署在软件容器下的工作可以自动化进行，借此在Linux操作系统上，提供一个额外的软件抽象层，以及操作系统层虚拟化的自动管理机制。 Docker利用Linux核心中的资源分离机制，例如cgroups，以及Linux核心名字空间，来创建独立的软件容器。<br>也就是说Docker本身是对container进行创建初始化管理的一个机制，毫无疑问，本文会就docker机制产生的问题，当然只是以docker为例，还提出了一些常见问题，然后就这些问题提出了解决方法。<br>首先，弄清楚这篇文章，我们需要对一些名词做出解释：</p>
+<ol>
+<li><p>serverless computing ：指的是一种由云服务商作为server，动态管理资源的配置的云计算模型，对于开发运维人员来说服务器管理以及资源规划的决定都是不可见的。可和传统的代码编写结合，例如微服务(一种软件开发的技术，一种以服务为导向的体系结构的变种，通过服务之间松耦合构成application.)</p>
+</li>
+<li><p>Zygote:<br>下文摘自 <a href="http://wiki.jikexueyuan.com/project/deep-android-v1/zygote.html" target="_blank" rel="noopener">http://wiki.jikexueyuan.com/project/deep-android-v1/zygote.html</a><br>Zygote本身是一个Native的应用程序，和驱动、内核等均无关系。这个概念是Android中提出的，在Android体系中，Zygote主要做了如下的工作。<br>·  第一天：创建AppRuntime对象，并调用它的start。此后的活动则由AppRuntime来控制。<br>·  第二天：调用startVm创建Java虚拟机，然后调用startReg来注册JNI函数。<br>·  第三天：通过JNI调用com.android.internal.os.ZygoteInit类的main函数，从此进入了Java世界。然而在这个世界刚开创的时候，什么东西都没有。<br>·  第四天：调用registerZygoteSocket。通过这个函数，它可以响应子孙后代的请求。同时Zygote调用preloadClasses和preloadResources，为Java世界添砖加瓦。<br>·  第五天：Zygote觉得自己工作压力太大，便通过调用startSystemServer分裂一个子进程system_server来为Java世界服务。<br>·  第六天：Zygote完成了Java世界的初创工作，它已经很满足了。下一步该做的就是调用runSelectLoopMode后，便沉沉地睡去了。<br>·  以后的日子：Zygote随时守护在我们的周围，当接收到子孙后代的请求时，它会随时醒来，为它们工作。<br>其中JNI函数的作用：<br>·  Java程序中的函数可以调用Native语言写的函数，Native一般指的是C/C++编写的函数。<br>·  Native程序中的函数可以调用Java层的函数，也就是在C/C++程序中可以调用Java的函数。</p>
+</li>
+<li><p>sandbox(沙盒机制)<br>沙盒是一种安全机制，为运行中的程序提供的隔离环境。通常是作为一些来源不可信、具破坏力或无法判定程序意图的程序提供实验之用。 沙盒通常严格控制其中的程序所能访问的资源，比如，沙盒可以提供用后即回收的磁盘及内存空间。</p>
+</li>
+<li>chroot<br>chroot是在unix系统的一个操作，针对正在运作的软件进程和它的子进程，改变它外显的根目录。一个运行在这个环境下，经由chroot设置根目录的程序，它不能够对这个指定根目录之外的文件进行访问动作，不能读取，也不能更改它的内容。称作”chroot监狱”，简化了安全设计，可以创造一个沙盒环境。</li>
+<li>Openlambda<br>OpenLambda is an Apache-licensed serverless computing project.基于Linux容器，主要目标是探索一个serverless computing的新方法。</li>
+</ol>
+<hr>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>因为设计到操作系统，很多概念和步骤，不像其他的论文那么好说，我就尽量把我的理解说清楚。<br>这篇文章的主要创新点是简化容器的创建过程，通过这个”瘦身过程”，容器启动速度可以达到docker的18倍，而后引入了”generalized Zygotes”的概念，主要功能是避免子process重复进行相同的initialization的工作以及避免重复copy消费额外内存。这会带来额外的3X的速度提升，最后通过一个”three-tier caching system”使得速度较没有使用Zygote的SOCK提升了45倍，也就可以理解为是一般Zygote的15倍。<br>所以不难得出我们SOCK With Openlambda 的构成应该分为三部分：<br>(1) lean-containers (2)”generalized Zygotes” (3)”three-tier caching system”<br>这里我没有采用和原文相同的结构，因为第一节结构container机制(“Deconstructing Container Performance”)以及第二节对于python包的统计处理(“Python Initialization Study”)只是介绍SOCK的理论工具。</p>
+<hr>
+<h2 id="1-lean-containers"><a href="#1-lean-containers" class="headerlink" title="(1) lean-containers"></a>(1) lean-containers</h2><hr>
+<h2 id="2-generalized-Zygotes"><a href="#2-generalized-Zygotes" class="headerlink" title="(2) generalized Zygotes"></a>(2) generalized Zygotes</h2><hr>
+<h2 id="3-three-tier-caching-system"><a href="#3-three-tier-caching-system" class="headerlink" title="(3)three-tier caching system"></a>(3)three-tier caching system</h2><hr>
+<ol start="6">
+<li>SOCK两个进程，init（通过chroot建立命名空间）和helper，helper是一个监听SOCK的通信频道的python程序。两个功能：pre-importing modules and loading lambda handlers to receive subserquent forwarded events。</li>
+</ol>
 
-                <!-- 如果开启评论功能 -->
                 
-                    <hr>
 
+                <hr>
+                <!-- Pager -->
+                <ul class="pager">
                     
+                    
+                        <li class="next">
+                            <a href="/2018/10/05/抽取并点缀生活的匠心/" data-toggle="tooltip" data-placement="top" title="抽取并点缀生活的匠心">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
 
-                    
-                    <!-- disqus 评论框 start -->
+                <!-- duoshuo Share start -->
+                
+                <!-- 多说 Share end-->
+
+                <!-- 多说评论框 start -->
+                
+                <!-- 多说评论框 end -->
+
+                <!-- disqus comment start -->
+                
                     <div class="comment">
                         <div id="disqus_thread" class="disqus-thread"></div>
                     </div>
-                    <!-- disqus 评论框 end -->
-                    
+                
+                <!-- disqus comment end -->
+            </div>
+            
+            <!-- Tabe of Content -->
+            <!-- Table of Contents -->
 
+                
+            <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
 
-                    
-
-                    
-                    <!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
-                    <script type="text/javascript">
-                        /* * * CONFIGURATION VARIABLES * * */
-                        var disqus_shortname = "your-disqus-ID";
-                        var disqus_identifier = "http://yoursite-url/about/index.html";
-                        var disqus_url = "http://yoursite-url/about/index.html";
-
-                        (function() {
-                            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-                            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-                            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-                        })();
-
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#Paper" title="Paper">Paper</a>
                         
-                    </script>
-                    <!-- disqus 公共JS代码 end -->
+                          <a class="tag" href="/tags/#ATC" title="ATC">ATC</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
                     
+                        <li><a href="http://beantech.org" target="_blank">Bean Tech</a></li>
+                    
+                        <li><a href="http://blog.kaijun.rocks" target="_blank">Kaijun&#39;s Blog</a></li>
+                    
+                        <li><a href="http://huangxuan.me" target="_blank">Hux Blog</a></li>
+                    
+                        <li><a href="#" target="_blank">It Helps SEO</a></li>
+                    
+                </ul>
                 
             </div>
-
-          <!-- Sidebar Container -->
-<div class="
-    col-lg-3 col-lg-offset-0
-    col-md-3 col-md-offset-0
-    col-sm-12
-    col-xs-12
-    sidebar-container
-">
-    
-        <!-- Featured Tags -->
-
-<section>
-    <!-- no hr -->
-    <h5><a href="/tags/">FEATURED TAGS</a></h5>
-    <div class="tags">
-        
-            
-        
-            
-        
-            
-            <a href="/tags/#Paper" title="Paper" rel="2">Paper</a>
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
+        </div>
     </div>
-</section>
+</article>
 
-        <hr>
-    
-        <!-- Short About -->
-<section class="visible-md visible-lg">
-    <h5><a href="/about/">ABOUT ME</a></h5>
-    <div class="short-about">
 
-        
-            <img id = "avatar_pic" src="/img/ironman-draw.png" />
-        
 
-        
-            <p>Hi, i&#39;m Qiqiang</p>
-        
 
-        <!-- SNS Link -->
-        <ul class="list-inline">
-            
-            
-            
-                <li>
-                    <a target="_blank" href="https://www.zhihu.com/people/Chris Qi">
-                        <span class="fa-stack fa-lg">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa  fa-stack-1x fa-inverse">知</i>
-                        </span>
-                    </a>
-                </li>
-            
+<!-- disqus embedded js code start (one page only need to embed once) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "your-disqus-ID";
+    var disqus_identifier = "http://yoursite-url/2018/10/12/SOCK-Rapid-Task-Provisioning-with-Serverless-Optimized-Containers/";
+    var disqus_url = "http://yoursite-url/2018/10/12/SOCK-Rapid-Task-Provisioning-with-Serverless-Optimized-Containers/";
 
-            
-                <li>
-                    <a target="_blank" href="http://weibo.com/痕Violet">
-                        <span class="fa-stack fa-lg">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
-                        </span>
-                    </a>
-                </li>
-            
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus embedded js code start end -->
 
-            
 
-            
-                <li>
-                    <a target="_blank"  href="https://github.com/ChrisQiqiang">
-                        <span class="fa-stack fa-lg">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-github fa-stack-1x fa-inverse"></i>
-                        </span>
-                    </a>
-                </li>
-            
-            
-            
-            
-        </ul>
-    </div>
-</section>
-        <hr>
-    
-        
-  <h5>RECENT POSTS</h3>
-  <div class="widget">
-    <ul>
-      
-        <li>
-          <a href="/2018/10/12/SOCK-Rapid-Task-Provisioning-with-Serverless-Optimized-Containers/">SOCK: Rapid Task Provisioning with Serverless-Optimized Containers</a>
-        </li>
-      
-        <li>
-          <a href="/2018/10/05/抽取并点缀生活的匠心/">抽取并点缀生活的匠心</a>
-        </li>
-      
-        <li>
-          <a href="/2018/09/30/Build-Kubernetes-cluster-on-AWS/">Build Kubernetes cluster on AWS</a>
-        </li>
-      
-        <li>
-          <a href="/2018/09/30/Scalable-Overload-Control-for-Large-scale-Microservice-Architecture/">Scalable Overload Control for Large-scale Microservice Architecture</a>
-        </li>
-      
-        <li>
-          <a href="/2018/09/29/总要心有所栖的群居动物/">总要心有所栖的群居动物</a>
-        </li>
-      
-    </ul>
-  </div>
 
-        <hr>
-    
-        <!-- Friends Blog -->
 
-<h5>FRIENDS</h5>
-<ul class="list-inline">
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'left',
+          icon: 'ℬ'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
 
-    
-        <li><a href="http://beantech.org" target="_blank">Bean Tech</a></li>
-    
-        <li><a href="http://blog.kaijun.rocks" target="_blank">Kaijun&#39;s Blog</a></li>
-    
-        <li><a href="http://huangxuan.me" target="_blank">Hux Blog</a></li>
-    
-        <li><a href="#" target="_blank">It Helps SEO</a></li>
-    
-</ul>
-
-        <hr>
-    
-</div>
-
-        
-    </div>
-</div>
 
 
     <!-- Footer -->
