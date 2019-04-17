@@ -149,14 +149,14 @@
 
                         
                         <li>
-                            <a href="/archive/">Archives</a>
+                            <a href="/tags/">Tags</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/tags/">Tags</a>
+                            <a href="/archive/">Archives</a>
                         </li>
                         
                     
@@ -213,11 +213,11 @@
                 post-container">
 
                 <h1 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h1><p>这是一篇关于GPU资源分配调度的paper, 出发点比较新颖。考虑的是在DNN inference过程中单个GPU上的不同DNN 模型的推理遇到的挑战，例如常用的TF-Serving就会导致运行时间不可预测的问题。<br><br>本文的出发点是在TensorFlow node这一级别上对其进行处理。首先对于一个job的DNN模型请求进来之后，经过profiler对它运行时间进行一个估计，确定time-slice，而后利用scheduler过程对拿到GPU使用权的job进行一个任务分配。<br><br>总结来说，就是实现了尽量减少消耗的前提下，提供一个可预测性的serving system。以下PART I，介绍背景知识引出我们说的传统TF-serving存在的问题。PART II, profiler的过程以及需要注意的点。PART III, scheduler的过程。</p>
-<div align="center"><br><img src="structure.png" style="zoom:70%"><br><br></div> 
+<div align="center"><br><img src="structure.PNG" style="zoom:70%"><br><br></div> 
 
 <h1 id="Main-Content"><a href="#Main-Content" class="headerlink" title="Main Content"></a>Main Content</h1><h2 id="I-Backgroud"><a href="#I-Backgroud" class="headerlink" title="I. Backgroud"></a>I. Backgroud</h2><h3 id="I-1-GPU相关知识"><a href="#I-1-GPU相关知识" class="headerlink" title="I.1 GPU相关知识"></a>I.1 GPU相关知识</h3><p>因为paper是关于GPU的资源调度的，所以自然要了解一些GPU的基础知识。仔细思考不难问出以下几个问题。<br></p>
 <ol>
-<li><p>什么是TensorFlow node级别？这个粒度级别在GPU调度里是属于什么层次的？<br><br> 答： TensorFlow node就是我们在DNN推理过程当中的一个个数字运算操作，例如对于一个$w*x + b$ 中的乘法以及加法就是一个node， 图计算过程中对于不同的操作有的可以在CPU上进行运行，而有的则需要在GPU上运行。所以一个模型推理过程中会产生成千上万个node。而一个node则会调用一个或者很多个kernel。<br></p>
+<li><p>什么是TensorFlow node级别？这个粒度级别在GPU调度里是属于什么层次的？<br><br> 答： TensorFlow node就是我们在DNN推理过程当中的一个个数字运算操作，例如对于一个 w*x + b 中的乘法以及加法就是一个node， 图计算过程中对于不同的操作有的可以在CPU上进行运行，而有的则需要在GPU上运行。所以一个模型推理过程中会产生成千上万个node。而一个node则会调用一个或者很多个kernel。<br></p>
 </li>
 <li><p>文中提到的thread，block，kernel，node，context分别是什么意思？<br><br> 答： node的含义刚刚解释过了，而一个node会调用多个kernel。一个GPU kernel则代表了一个基本的数据并行计算。其中一个kernel会被分成很多个thread，而这些thread会group到一个thread block中，而每个block会被分配到相同或者不同的streaming multiprocessor（sm）上。<br><br> GPU硬件结构上最基本的处理单元是streaming processor(sp), 可以看作是一个thread，即一个sp对应一个thread。而warp当中包含多个sp，每个warp当中的sp是一起工作的，执行相同的指令，可以看做是最小的执行单位。多个warp加上其他的存储资源（寄存器，共享内存）构成一个sm，对应一个block。一<br><br> 所以GPU中的软件概念可以看做是：kernel-&gt;grid-&gt;block-&gt;warp-&gt;thread<br><br> 其中，kernel是在GPU上执行的程序，一个Kernel对应一个Grid。每个kernel可以看做是一个程序，对于每个DNN 模型一般包含多个kernel。TF-serving会将这些kernel以队列的形式交给GPU driver，然后任由它底层硬件如何求调度资源运行。一个block中的thread可以彼此同步，快速交换数据。而context就类似于我们通常所说的进程了，包含了GPU驱动程序中所有的资源以及行动。<br></p>
 <h3 id="I-2-TF-serving"><a href="#I-2-TF-serving" class="headerlink" title="I.2 TF-serving"></a>I.2 TF-serving</h3><p>TF-Serving就是一个对用户请求进行反应（模型推理）并返回结果的过程。TF-serving是如何工作的呢？ TF-serving的操作对象也是TensorFlow node，对于每一个模型执行以下的操作。<br></p>
@@ -230,10 +230,10 @@
 <li>spatially (assign different kernels’ thread blocks to different stream multiprocessors)</li>
 <li>temporally (switch between different kernels within the same stream multiprocessor).<br>但是因为推理DNN过程当中，通常情况下会超出GPU的并行承受度。剩余很小的空间利用spatial multiplexing进行不同用户的request之间的多路复用了。所以本文只考虑第二种方式。</li>
 </ol>
-<h2 id="II-Profiler"><a href="#II-Profiler" class="headerlink" title="II. Profiler"></a>II. Profiler</h2><p>如果想对时间进行切片，确定时间片的大小至关重要，显然对于不同的模型所采用的时间片应当是不同的。对于一个模型，Tensorfolw提供了一个cost profiler 可以用来在线的绘出DNN运行轮廓。但是在线的延迟过高，所以这篇paper建立了一个线下的轮廓绘制。<br><br>大概步骤是：Olympian会拿一些正常的batch size进行一个试运行，利用线性回归来预测其他的batch size的结果。<br><br>对于<br>，C是通过API函数对每个node预估求和得到的结果，D是在GPU上的运行的实际时间， Q是我们取的quantum，T则是the cost accumulation threshold. Q值根据不同的DNN得出的值，估计的值不会高于overhead tolerance.</p>
+<h2 id="II-Profiler"><a href="#II-Profiler" class="headerlink" title="II. Profiler"></a>II. Profiler</h2><p>如果想对时间进行切片，确定时间片的大小至关重要，显然对于不同的模型所采用的时间片应当是不同的。对于一个模型，Tensorfolw提供了一个cost profiler 可以用来在线的绘出DNN运行轮廓。但是在线的延迟过高，所以这篇paper建立了一个线下的轮廓绘制。<br><br>大概步骤是：Olympian会拿一些正常的batch size进行一个试运行，利用线性回归来预测其他的batch size的结果。<br><br>对于<br><code>公式</code>，C是通过API函数对每个node预估求和得到的结果，D是在GPU上的运行的实际时间， Q是我们取的quantum，T则是the cost accumulation threshold. Q值根据不同的DNN得出的值，估计的值不会高于overhead tolerance.</p>
 <h2 id="III-Scheduler"><a href="#III-Scheduler" class="headerlink" title="III. Scheduler"></a>III. Scheduler</h2><p>当每个job随着scheduler注册时，的session被分配一个令牌，存储在srInfo中。<br><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">1</span>: function Session::Run(modelName, input)</span><br><span class="line"><span class="attribute">2</span>:      srInfo = new SessRunInfo(sessId, runId)</span><br><span class="line"><span class="attribute">3</span>:      root = getRoot(modelName, input)</span><br><span class="line"><span class="attribute">4</span>:      scheduler.register(srInfo)</span><br><span class="line"><span class="attribute">5</span>:      cumulatedCost = 0</span><br><span class="line"><span class="attribute">6</span>:      Process(root, srInfo, cumulatedCost)</span><br><span class="line"><span class="attribute">7</span>:      scheduler.deregister(srInfo)</span><br><span class="line"><span class="attribute">8</span>: function Process(root, srInfo, cumulatedCost)</span><br><span class="line"><span class="attribute">9</span>:      bfsQueue.push(root)</span><br><span class="line"><span class="attribute">10</span>:     while !bfsQueue.empty() do</span><br><span class="line"><span class="attribute">11</span>:         curNode = bfsQueue.pop()</span><br><span class="line"><span class="attribute">12</span>:         scheduler.yield(srInfo)</span><br><span class="line"><span class="attribute">13</span>:         compute(curNode)</span><br><span class="line"><span class="attribute">14</span>:         if curNode.isGPUNode() then</span><br><span class="line"><span class="attribute">15</span>:             cumulatedCost += curNode.cost()</span><br><span class="line"><span class="attribute">16</span>:         if cumulatedCost ≥ threshold then</span><br><span class="line"><span class="attribute">17</span>:             cumulatedCost −= threshold</span><br><span class="line"><span class="attribute">18</span>:             scheduler.updateTokenInfo(srInfo)# calls the scheduler to trigger a scheduling decision,到这步的时候，就要决定下一步应该是哪个job占用gpu了。</span><br><span class="line"><span class="attribute">19</span>:         for childNode in curNode.children() do</span><br><span class="line"><span class="attribute">20</span>:             if !childNode.kernelIsAsync() then</span><br><span class="line"><span class="attribute">21</span>:                 bfsQueue.push(childNode)</span><br><span class="line"><span class="attribute">22</span>:             else</span><br><span class="line"><span class="attribute">23</span>:                 thread = threadPool.fetch()</span><br><span class="line"><span class="attribute">24</span>:                 thread(Process(childNode, srInfo, cumulated-</span><br><span class="line">    <span class="attribute">Cost))</span></span><br></pre></td></tr></table></figure></p>
 <p>即使达到触发一个调度决策的条件，然后更新令牌需要时间。正在运行的job的其它线程也可能会继续运行下去。</p>
-<div align="center"><br><img src="delay.png" style="zoom:70%"><br><br></div> 
+<div align="center"><br><img src="delay.PNG" style="zoom:70%"><br><br></div> 
 
 <h1 id="Question-in-the-reading-process"><a href="#Question-in-the-reading-process" class="headerlink" title="Question in the reading process."></a>Question in the reading process.</h1><h2 id="摘要部分"><a href="#摘要部分" class="headerlink" title="摘要部分"></a>摘要部分</h2><ol>
 <li>传统的TF-serving在调度DNN模型的时候会面临两个挑战：1， 如何调度 2， 切换的消耗尽量小。<br><br> 1.1 传统模式下一个GPU是能做到同时跑多个DNN models吗？如果能，是怎么做到的？<br><br> 答： 可以，是采用抢占式的GPU运行，但是随着大量并行程序的运行context会变得很大。context很大会带来什么额问题？<br><br> 1.2 Olympian能实现单个GPU在多个DNN 任务上的公平共享，那其他的抢占方式呢？<br><br> 答： 文中只是给了一个模拟实验证明以后这方面的工作可行。</li>
