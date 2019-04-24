@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          Scaling Distributed Machine Learning with the Parameter Server - Qiqiang Blog
+          Scalable Deep Learning on Distributed Infrastructures: - Qiqiang Blog
         
     </title>
 
-    <link rel="canonical" href="http://yoursite-url/2019/04/20/Scaling-Distributed-Machine-Learning-with-the-Parameter-Server/">
+    <link rel="canonical" href="http://yoursite-url/2019/04/24/Scalable-Deep-Learning-on-Distributed-Infrastructures/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -86,18 +86,12 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#Paper" title="Paper">Paper</a>
-                            
-                              <a class="tag" href="/tags/#Machine learning" title="Machine learning">Machine learning</a>
-                            
-                              <a class="tag" href="/tags/#OSDI" title="OSDI">OSDI</a>
-                            
                         </div>
-                        <h1>Scaling Distributed Machine Learning with the Parameter Server</h1>
+                        <h1>Scalable Deep Learning on Distributed Infrastructures:</h1>
                         <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by Chris Qiqiang(ECNU) on
-                            2019-04-20
+                            2019-04-24
                         </span>
                     </div>
                 
@@ -214,29 +208,16 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <p>这篇论文是发表在OSDI 2014， 可以算是分布式机器学习的一个里程碑意义的论文。虽然提出的思想在如今看来已经不再那么新颖，但是具体实现细节以及对big data的处理能力的提升使得该模型成为经典模型。<br><br>它并不是第一个提出parameter server思想的文章， 用文中的话就是：第一代的memcached distributed(key,value) store作为同步机制的ps缺乏flexibility and good performance， 第二代ps如YahooLDA，Distbelief中添加了大量人为指定的算法和元素，并没有很好地解决数据一致性以及scalability的问题。<br><br>本文提出的模型以及算法很大程度上在数据一致性上提高了弹性，是至此之前唯一的提供持续的容错的系统。因为文章的细节实现太多，关于数据如何切割如何备份如何传输步骤都很详细，这里也没什么功夫一一列举了，说实话也不怎么记得住就是了。所以以下将从三个方面概括一下主要的思想：模型、算法、容错处理。</p>
-<h2 id="I-Model"><a href="#I-Model" class="headerlink" title="I. Model"></a>I. Model</h2><p><div align="center"><br><img src="architecture.png" style="zoom:60%"><br></div><br>如图，一个worker group负责运行一个application，其中的task scheduler负责创建task分配给每一个worker node，同时还进行容错控制，如果加入或删除worker node， 它会对未执行完的task重新进行调度。server group中则是存储了所有的global parameter，每一个 server node存储一部分， server node间互相通信备份或者迁移数据提高稳定性以及scaling的能力。server manager的用途则是对每一个server node进行长期的监控(如健康状况等)以及parameter partitions的分配。<br><br>举例来说，对于一个训练集庞大的DNN, 我们把数据进行拆分放到每一个worker node上，每一个worker会利用自身存储的数据求梯度，然后每一个worker node会和server进行通信。那么如此多的sever，我们如何得到哪一个server里面存放着我们这个DNN所需要的parameters的数据呢? 对于同一个模型，处理它多个node的梯度运算的server 是固定的一个还是多个， 如果是分成多个，那么这多个server node之间是怎么关联的呢？并没有再上一层为这些server node再进行一次aggregation。 <br><br>要搞清楚通信过程，首先先了解参数在传输过程中是以什么形式存储的。传统模型下在传输过程中模型都是以（key,value）的形式存储的，例如对于一个LR过程，key就是输入的一个特征，value则是该特征对应的权值。试想，这样对于一个参数我们push到server端，要进行聚合运算，一定是在一个server node上进行的。而对于同一个模型下的多个参数来说，则可以是在不同的node上的。所以我们要明白的一点就是：在传输的过程中，处理的原子是一个个的（key,value)，即一个个参数。其次，对于如何得知是在哪个server node上运行的， 本文采用的是持续性hash的思想， server master management采用的是direct-mapped DHT design. 实现key与server node之间的一一对应。关于Consistent Hashing的原理这里不再赘诉。server master端控制hash ring 的management，其他的server nodes本地存储key partition。</p>
-<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">提一个问题：这样server <span class="literal">master</span>会造成瓶颈吧？ 毕竟每一次push和pull都需要经过server <span class="literal">master</span>的寻址，还是说这个地址会被记住？</span><br><span class="line">文章中好像没说，那如果在第一次push之后记住，server <span class="keyword">node</span> <span class="title">发生变化后新的参数就得不到进行处理了。</span></span><br></pre></td></tr></table></figure>
-<p>本文主要针对scalability作出改进，那么试想在每轮参数更新的时候定是需要更新大量的参数。带宽和内存资源会不够。所以提出range-based communication pattern of ps. 如果ps push的是一个范围，那么这些参数的时间戳是可以看成是相同的。对于每个node上的参数range的范围界定，文中给出一个简单的算法，其中range最大值为3。最后实现了O(mn)到O(mk)的算法提高，m是node个数，n是参数个数，k是range个数。</p>
-<h2 id="II-Algorithm"><a href="#II-Algorithm" class="headerlink" title="II. Algorithm"></a>II. Algorithm</h2><p>文章对三个算法进行了评估，稀疏逻辑回归，LDA，sketch。因为LR是DNN的基础单元，这里说一下稀疏逻辑回归。<br>算法如下：</p>
-<p><div align="center"><br><img src="algorithm.png" style="zoom:50%"><br></div><br>sheduler端：因为push的时候是以range为单位的， 所以在worker内部scheduler的过程中， 需要实时将的range分配给特定的worker（我是这么觉得的，说的有点含糊不清。）<br><br>worker端： 计算梯度并push， 其中\(\tau \) 是指最大等待时长，等的越长越接近ASP, \(\tau \) 为0则是BSP。实验结果得到\(\tau \) = 9的时候达到best trade-off。用文中的思想则是更具有弹性的一致性思想，从图的角度进行解释。如图, \(\tau \) = 0就是sequential consistency model，\(\tau {\rm{ = }}\infty \)就是eventual consistency model。</p>
-<p><div align="center"><br><img src="DAG.png" style="zoom:50%"><br></div><br>Push的时候采取的是KKT filter，过滤条件是w为0或者对全局梯度影响值小于user-define的一个值，就不push了。<br><br>server端则是进行一个聚合以及加正则化项更新梯度的操作。</p>
-<h2 id="III-Fault-tolerance"><a href="#III-Fault-tolerance" class="headerlink" title="III. Fault tolerance"></a>III. Fault tolerance</h2><p>通过数据备份等 方法使得再增加或减少worker node 以及server node的过程中，正在运行的工作不会受到巨大影响，应该还是有影响的，比如某个参数没有得到及时更新，导致收敛速度降低或者造成数据不一致性使得训练跑偏都是有可能的。<br>步骤的话，大概就是把大象放进冰箱里吧。随便看看。<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">For</span> a<span class="built_in"> server </span>node joining:</span><br><span class="line">1. The<span class="built_in"> server </span>manager assigns the new node a key range <span class="keyword">to</span> serve as master. This may cause another key range <span class="keyword">to</span> split <span class="keyword">or</span> be removed <span class="keyword">from</span> a terminated node.</span><br><span class="line">2. The node fetches the range of data <span class="keyword">to</span> maintains as master <span class="keyword">and</span> k additional ranges <span class="keyword">to</span> keep as slave.</span><br><span class="line">3. The<span class="built_in"> server </span>manager broadcasts the node changes. The recipients of the message may shrink their own data based on key ranges they <span class="literal">no</span> longer hold <span class="keyword">and</span> <span class="keyword">to</span> resubmit unfinished tasks <span class="keyword">to</span> the new node.</span><br><span class="line"><span class="keyword">For</span> a worker node joining:</span><br><span class="line">1. The task<span class="built_in"> scheduler </span>assigns W a range of data.</span><br><span class="line">2. This node loads the range of training data <span class="keyword">from</span> a<span class="built_in"> network </span>file<span class="built_in"> system </span><span class="keyword">or</span> existing workers. Training data is often read-only, so there is <span class="literal">no</span> two-phase fetch. Next, W pulls the shared parameters <span class="keyword">from</span> servers.</span><br><span class="line">3. The task<span class="built_in"> scheduler </span>broadcasts the change, possibly causing other workers <span class="keyword">to</span> free some training data.</span><br></pre></td></tr></table></figure></p>
-<p>这种好多年前的经典论文，感觉还是看懂它的实现过程以及思想特色为主，对于该模型的不足之处近年也是做了不少的工作。什么工作，太菜了，说不上来。大概就是从数据本身的形式，不采用(key, value)的形式；从架构本身，例如采用p2p的架构，还有就是共享资源的调度方面吧，如GPU资源。以后会做个总结。</p>
-
+                
                 
 
                 <hr>
                 <!-- Pager -->
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/2019/04/24/Scalable-Deep-Learning-on-Distributed-Infrastructures/" data-toggle="tooltip" data-placement="top" title="Scalable Deep Learning on Distributed Infrastructures:">&larr; Previous Post</a>
-                        </li>
-                    
                     
                         <li class="next">
-                            <a href="/2019/04/18/Gradient-descent/" data-toggle="tooltip" data-placement="top" title="Gradient descent">Next Post &rarr;</a>
+                            <a href="/2019/04/20/Scaling-Distributed-Machine-Learning-with-the-Parameter-Server/" data-toggle="tooltip" data-placement="top" title="Scaling Distributed Machine Learning with the Parameter Server">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -275,12 +256,6 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#Paper" title="Paper">Paper</a>
-                        
-                          <a class="tag" href="/tags/#Machine learning" title="Machine learning">Machine learning</a>
-                        
-                          <a class="tag" href="/tags/#OSDI" title="OSDI">OSDI</a>
-                        
                     </div>
                 </section>
                 
@@ -314,8 +289,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "your-disqus-ID";
-    var disqus_identifier = "http://yoursite-url/2019/04/20/Scaling-Distributed-Machine-Learning-with-the-Parameter-Server/";
-    var disqus_url = "http://yoursite-url/2019/04/20/Scaling-Distributed-Machine-Learning-with-the-Parameter-Server/";
+    var disqus_identifier = "http://yoursite-url/2019/04/24/Scalable-Deep-Learning-on-Distributed-Infrastructures/";
+    var disqus_url = "http://yoursite-url/2019/04/24/Scalable-Deep-Learning-on-Distributed-Infrastructures/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
