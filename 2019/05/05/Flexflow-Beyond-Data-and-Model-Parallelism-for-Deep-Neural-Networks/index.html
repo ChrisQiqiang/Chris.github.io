@@ -14,11 +14,11 @@
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>
         
-          总要心有所栖的群居动物 - Qiqiang Blog
+          Flexflow:Beyond Data and Model Parallelism for Deep Neural Networks - Qiqiang Blog
         
     </title>
 
-    <link rel="canonical" href="http://yoursite-url/2018/09/29/总要心有所栖的群居动物/">
+    <link rel="canonical" href="http://yoursite-url/2019/05/05/Flexflow-Beyond-Data-and-Model-Parallelism-for-Deep-Neural-Networks/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -69,7 +69,7 @@
 <style type="text/css">
     header.intro-header{
         
-            background-image: url('header.png')
+            background-image: url('')
             /*post*/
         
     }
@@ -86,14 +86,18 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#博客介绍" title="博客介绍">博客介绍</a>
+                              <a class="tag" href="/tags/#Machine learning" title="Machine learning">Machine learning</a>
+                            
+                              <a class="tag" href="/tags/#Paper" title="Paper">Paper</a>
+                            
+                              <a class="tag" href="/tags/#SysML" title="SysML">SysML</a>
                             
                         </div>
-                        <h1>总要心有所栖的群居动物</h1>
+                        <h1>Flexflow:Beyond Data and Model Parallelism for Deep Neural Networks</h1>
                         <h2 class="subheading"></h2>
                         <span class="meta">
                             Posted by Chris Qiqiang(ECNU) on
-                            2018-09-29
+                            2019-05-05
                         </span>
                     </div>
                 
@@ -210,9 +214,16 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h1 id="博客初衷"><a href="#博客初衷" class="headerlink" title="博客初衷"></a>博客初衷</h1><h2 id="关于文章"><a href="#关于文章" class="headerlink" title="关于文章"></a>关于文章</h2><p>作为一个伪文艺青年，之前对生活有所感悟偶尔会花一点时间去记录一下，或者在空间或者在微博或者在豆瓣或者在知乎。当自己沉浸在某一个世界不能自拔的时候，往往想找身边的人进行分享，但是人们都长大了，朋友们也不再像小时候的玩伴一样随时恭候。于是就有了所谓的文章，所谓的抒情。</p>
-<h2 id="关于笔记"><a href="#关于笔记" class="headerlink" title="关于笔记"></a>关于笔记</h2><p>不知不觉研究生的生活也已经过了一个月，切身认识到自己才疏学浅。每次见到大佬的成果都惶惶而恐=_=，研究方向也没确定，也不知道自己喜欢什么擅长什么，总之尽量把之前的坑慢慢填好，在自己看的东西上多思考。我始终相信，什么时候开始努力都还不算晚，所以关于学习笔记，简书CSDN之类我也觉得太麻烦。</p>
-<h2 id="关于自己"><a href="#关于自己" class="headerlink" title="关于自己"></a>关于自己</h2><p>人嘛，虽然越长大越孤单，但是仍然需要有所寄托。于是有了空间分享，有了微博，有了抖音，没有盈利，只是渴望被知道，渴望被认可。有了属于自己的博客，就可以写点自己的东西，无论是学习笔记还是文章感悟，分享跟身边的朋友，便就足够。</p>
+                <p>这篇论文是在之前survey在hybrid parallelism的部分提到的一篇论文，因为说是采用了一个execution simulator从而能够自动的进行并行策略的优化选取，比较好奇所以仔细看了一下。<br>这是斯坦福Matei Zaharia(写spark那个)18年发在axXiv,发表在sysML 19的文章，针对的是当前分布式处理DNN任务的时候并行策略难以选取的痛点。在之前survey中也有提到，目前大部分的分布式的任务训练仍然采用的是data parallelism的策略，即使是用到model parallelism，因为不知道如何划分layer导致往往不能达到最优的performance。那这篇文章旨在找出那个最优策略，不再单一的使用data or model parallelism。<br>那么第一个问题：<br><strong>Q1: 既然是选取策略，那么一定有一个很多种策略组成的集合，那么这个集合是如何构建的呢？ 最终选取的是什么策略？</strong><br>本文把我们所说的这个策略的集合或者说是策略池命名为SOAP space，这个space包含了对于一个operation的所有可能的分布式策略。它具备所有的可分的维度（可以理解为输入的属性），而这些维度又可以归类为以下几个维度：<br>sample dimension，parameter dimension，attribute dimension<br>其中样本维度是每个DNN model都有的，而如果一个维度在分割的时候需要分割模型参数，就将其归做参数维度，其他的归为属性维度。这n个维度中每个维度都有k个可能的取值，那么n*k即为所有可能的情况，也就是某个operation在运行时会derive出来的task个数。之后再对每种operation进行一个筛选的过程，所以总情况为 \(\sum\limits_{ {\rm{i}} = 1}^{opr - num} { {n_i}*{k_i}} \), opr-num为operation的种类数。这里又引出一个重要的前提，<code>many DNN models use a small number of distinct
+operators</code>, 有了这个前提我们就可以把我们的资源池内策略数目变成可数的了。<br><strong>所以我们最终要得到的策略即是对于每个operation选取一个并行策略的集合。</strong></p>
+<div align="center"><br><img src="SOAP.png" style="zoom:70%"><br><br></div> 
+
+<p>首先看表1，对于不同的操作，输入数据的维度归类是不同的。attribute这个维度可以比较随意的理解为平时我们不怎么会选择分割的一些输入参数。比较模糊的可能就是parameter维度，这里的channel都是指的图中的神经元，在model parallelism中切分的是模型的layer并不是以神经元为单位，不是很清楚这里具体是啥意思，如果以后有空看源码的话再说。图3就是对一维卷积不同的分割方法做了一个类比，其中hybrid parallelism则会涵盖到attribute 维度，至于目前的一些方法的分割方式可以总结如图1：</p>
+<div align="center"><br><img src="图1.png" style="zoom:70%"><br><br></div> 
+
+<p>这里用强化学习去得到策略只针对每个operation，之后我会去看一下: <code>Device placement optimization
+with reinforcement learning</code>。<br><strong>Q2: 对于一个operation(o)以及其对应的SOAP space, 如何得到最优的策略？</strong><br>在这种情况下，穷举所有的策略并对每一种策略进行实验得到结果进行比较显然是不现实的，所以本文主体部分使用一个预测算法预测在一个cluster上一个operation对于一个策略运行所花费的时间。这部分会在之后讲。<br>有了这个算法，我们能否直接对每一种策略进行一个预测估计呢，答案仍然是否定的，随着operation个数的增长，策略个数是呈指数级增长的，穷举复杂度太高了。所以本文采用了MCMC Sampling, 说白了就是每次随机一个策略，在规定的时间内得到最优的点。可以理解为就是一个的贪心策略。文章说的蛮复杂的，就不在这说了。</p>
+<p><strong>Q3: 对于采用了策略(S)运行在某一个特定cluster(D)的一个model(G)，如何预测它的运行时间？</strong><br>首先明白两点：1&gt; S包含了对于每一个operation的策略si， G是一个model的oprator graph，代表了一个模型不同操作之间的依赖关系。</p>
 
                 
 
@@ -220,13 +231,9 @@
                 <!-- Pager -->
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/2018/09/30/Scalable-Overload-Control-for-Large-scale-Microservice-Architecture/" data-toggle="tooltip" data-placement="top" title="Scalable Overload Control for Large-scale Microservice Architecture">&larr; Previous Post</a>
-                        </li>
-                    
                     
                         <li class="next">
-                            <a href="/2017/03/18/hexo-theme-beantech/" data-toggle="tooltip" data-placement="top" title="[Hexo] Theme BeanTech">Next Post &rarr;</a>
+                            <a href="/2019/04/24/Scalable-Deep-Learning-on-Distributed-Infrastructures/" data-toggle="tooltip" data-placement="top" title="Scalable Deep Learning on Distributed Infrastructures:">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -265,7 +272,11 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#博客介绍" title="博客介绍">博客介绍</a>
+                          <a class="tag" href="/tags/#Machine learning" title="Machine learning">Machine learning</a>
+                        
+                          <a class="tag" href="/tags/#Paper" title="Paper">Paper</a>
+                        
+                          <a class="tag" href="/tags/#SysML" title="SysML">SysML</a>
                         
                     </div>
                 </section>
@@ -300,8 +311,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "your-disqus-ID";
-    var disqus_identifier = "http://yoursite-url/2018/09/29/总要心有所栖的群居动物/";
-    var disqus_url = "http://yoursite-url/2018/09/29/总要心有所栖的群居动物/";
+    var disqus_identifier = "http://yoursite-url/2019/05/05/Flexflow-Beyond-Data-and-Model-Parallelism-for-Deep-Neural-Networks/";
+    var disqus_url = "http://yoursite-url/2019/05/05/Flexflow-Beyond-Data-and-Model-Parallelism-for-Deep-Neural-Networks/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
