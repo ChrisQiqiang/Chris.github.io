@@ -86,9 +86,9 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#SysML" title="SysML">SysML</a>
-                            
                               <a class="tag" href="/tags/#Paper" title="Paper">Paper</a>
+                            
+                              <a class="tag" href="/tags/#SysML" title="SysML">SysML</a>
                             
                               <a class="tag" href="/tags/#Machine learning" title="Machine learning">Machine learning</a>
                             
@@ -235,7 +235,7 @@ with reinforcement learning</code>。<br><strong>Q2: 对于一个operation(o)以
 <div align="center"><br><img src="algorithm.png" style="zoom:60%"><br><br></div> 
 
 <p><strong>Q4: 实验结果如何？</strong><br>至于实验部分，文章做了大量的对比实验，不一个个说了。无论是从运行效率还有精度方面都达到了很好的效果。<br>Flexflow在数据传输方面都降到了一个理想值，如下图所示：</p>
-<div align="center"><br><img src="simulator.png" style="zoom:60%"><br><br></div> 
+<div align="center"><br><img src="time.png" style="zoom:60%"><br><br></div> 
 
 <p>但是，单循环task运行时间却不如”expert designed”的，为什么？<br><code>this is achieved by using model parallelism on each node, which disables any parallelism within each operator and results in imbalanced workload.</code><br>也就是说人工设置的时候通过模型并行虽然降低了每个iteration的运行时间，通信量却大大增加了，也导致了不平衡的数据流。在总体运行时间上不如Flexflow，如图a.</p>
 <h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>对于在一个device topology一个model，即一个operator graph根据不同的策略得到不同的task graph，对于不同的graph使用了一个simulator， 在规定的时间内不断更新，得到一个较优策略S。 总体框架如下：</p>
@@ -293,9 +293,9 @@ with reinforcement learning</code>。<br><strong>Q2: 对于一个operation(o)以
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#SysML" title="SysML">SysML</a>
-                        
                           <a class="tag" href="/tags/#Paper" title="Paper">Paper</a>
+                        
+                          <a class="tag" href="/tags/#SysML" title="SysML">SysML</a>
                         
                           <a class="tag" href="/tags/#Machine learning" title="Machine learning">Machine learning</a>
                         
