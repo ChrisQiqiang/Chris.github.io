@@ -86,11 +86,11 @@
                     <div class="post-heading">
                         <div class="tags">
                             
-                              <a class="tag" href="/tags/#Machine learning" title="Machine learning">Machine learning</a>
-                            
                               <a class="tag" href="/tags/#SysML" title="SysML">SysML</a>
                             
                               <a class="tag" href="/tags/#Paper" title="Paper">Paper</a>
+                            
+                              <a class="tag" href="/tags/#Machine learning" title="Machine learning">Machine learning</a>
                             
                         </div>
                         <h1>Flexflow:Beyond Data and Model Parallelism for Deep Neural Networks</h1>
@@ -151,14 +151,14 @@
 
                         
                         <li>
-                            <a href="/tags/">Tags</a>
+                            <a href="/archive/">Archives</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/archive/">Archives</a>
+                            <a href="/tags/">Tags</a>
                         </li>
                         
                     
@@ -214,7 +214,7 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <p>这篇论文是在之前survey在hybrid parallelism的部分提到的一篇论文，因为说是采用了一个execution simulator从而能够自动的进行并行策略的优化选取，比较好奇所以仔细看了一下。<br>这是斯坦福Matei Zaharia(写spark那个)18年发在axXiv,发表在sysML 19的文章，针对的是当前分布式处理DNN任务的时候并行策略难以选取的痛点。在之前survey中也有提到，目前大部分的分布式的任务训练仍然采用的是data parallelism的策略，即使是用到model parallelism，因为不知道如何划分layer导致往往不能达到最优的performance。那这篇文章旨在找出那个最优策略，不再单一的使用data or model parallelism。<br>那么第一个问题：<br><strong>Q1: 既然是选取策略，那么一定有一个很多种策略组成的集合，那么这个集合是如何构建的呢？ 最终选取的是什么策略？</strong><br>本文把我们所说的这个策略的集合或者说是策略池命名为SOAP space，这个space包含了对于一个operation的所有可能的分布式策略。它具备所有的可分的维度（可以理解为输入的属性），而这些维度又可以归类为以下几个维度：<br>sample dimension，parameter dimension，attribute dimension<br>其中样本维度是每个DNN model都有的，而如果一个维度在分割的时候需要分割模型参数，就将其归做参数维度，其他的归为属性维度。这n个维度中每个维度都有k个可能的取值，那么n*k即为所有可能的情况，也就是某个operation在运行时会derive出来的task个数。之后再对每种operation进行一个筛选的过程，所以总情况为 \(\sum\limits_{ {\rm{i}} = 1}^{opr - num} { {n_i}*{k_i}} \), opr-num为operation的种类数。这里又引出一个重要的前提，<code>many DNN models use a small number of distinct
+                <p>这篇论文是在之前survey在hybrid parallelism的部分提到的一篇论文，因为说是采用了一个execution simulator从而能够自动的进行并行策略的优化选取，比较好奇所以仔细看了一下。<br>这是斯坦福Matei Zaharia(写spark那个)18年发在axXiv,发表在sysML 19的文章，针对的是当前分布式处理DNN任务的时候并行策略难以选取的痛点。在之前survey中也有提到，目前大部分的分布式的任务训练仍然采用的是data parallelism的策略，即使是用到model parallelism，因为不知道如何划分layer导致往往不能达到最优的performance。那这篇文章旨在找出那个最优策略，不再单一的使用data or model parallelism。<br>以下采取QA的方式分析整篇文章的思路。<br><strong>Q1: 既然是选取策略，那么一定有一个很多种策略组成的集合，那么这个集合是如何构建的呢？ 最终选取的是什么策略？</strong><br>本文把我们所说的这个策略的集合或者说是策略池命名为SOAP space，这个space包含了对于一个operation的所有可能的分布式策略。它具备所有的可分的维度（可以理解为输入的属性），而这些维度又可以归类为以下几个维度：<br>sample dimension，parameter dimension，attribute dimension<br>其中样本维度是每个DNN model都有的，而如果一个维度在分割的时候需要分割模型参数，就将其归做参数维度，其他的归为属性维度。这n个维度中每个维度都有k个可能的取值，那么n*k即为所有可能的情况，也就是某个operation在运行时会derive出来的task个数。之后再对每种operation进行一个筛选的过程，所以总情况为 \(\sum\limits_{ {\rm{i}} = 1}^{opr - num} { {n_i}*{k_i}} \), opr-num为operation的种类数。这里又引出一个重要的前提，<code>many DNN models use a small number of distinct
 operators</code>, 有了这个前提我们就可以把我们的资源池内策略数目变成可数的了。<br><strong>所以我们最终要得到的策略即是对于每个operation选取一个并行策略的集合。</strong></p>
 <div align="center"><br><img src="SOAP.png" style="zoom:70%"><br><br></div> 
 
@@ -223,7 +223,28 @@ operators</code>, 有了这个前提我们就可以把我们的资源池内策�
 
 <p>这里用强化学习去得到策略只针对每个operation，之后我会去看一下: <code>Device placement optimization
 with reinforcement learning</code>。<br><strong>Q2: 对于一个operation(o)以及其对应的SOAP space, 如何得到最优的策略？</strong><br>在这种情况下，穷举所有的策略并对每一种策略进行实验得到结果进行比较显然是不现实的，所以本文主体部分使用一个预测算法预测在一个cluster上一个operation对于一个策略运行所花费的时间。这部分会在之后讲。<br>有了这个算法，我们能否直接对每一种策略进行一个预测估计呢，答案仍然是否定的，随着operation个数的增长，策略个数是呈指数级增长的，穷举复杂度太高了。所以本文采用了MCMC Sampling, 说白了就是每次随机一个策略，在规定的时间内得到最优的点。可以理解为就是一个的贪心策略。文章说的蛮复杂的，就不在这说了。</p>
-<p><strong>Q3: 对于采用了策略(S)运行在某一个特定cluster(D)的一个model(G)，如何预测它的运行时间？</strong><br>首先明白两点：1&gt; S包含了对于每一个operation的策略si， G是一个model的oprator graph，代表了一个模型不同操作之间的依赖关系。</p>
+<p><strong>Q3: 对于采用了策略(S)运行在某一个特定cluster(D)的一个model(G)，如何预测它的运行时间？</strong><br>这里明白两点：1&gt; S包含了对于每一个operation的策略si， G是一个model的operator graph，代表了一个模型不同操作之间的依赖关系。<br>首先我们要构建出一个task graph \(\Gamma \)来反映我们根据策略分出的task运行的依赖关系，再根据估计算法算出timeline。这里将两个设备之间的传输抽象成 <strong>communication task</strong> 。要得到 \(\Gamma  = ({\Gamma _N},{\Gamma _E})\) (<em>前者包含所有的task(normal tasks and communication tasks),后者则是不同task之间的依赖关系</em>), 遵循以下的步骤：</p>
+<ol>
+<li>对于每个operation \({ {\rm{o}}_{\rm{i}}} \in G\), 若它的configuration \({c_i}\), 我们将tasks \({t_{i:1}},{t_{i:2}},…,{t_{i:|{c_i}|}}\)添加到graph 节点集合\({\Gamma _N}\)中去。</li>
+<li>对于每个operation依赖，\( ({o_i},{o_j}) \in G\), 前者输出为后者输入，如果两者在同一个设备上，我们直接两者产生的task联系起来放入\({\Gamma _E}\)中，否则我们需要在两个task中加入一个communication task， 然后将由该communication task做桥梁的两条edge加入\({\Gamma _E}\)。<br>至此一个task graph \(\Gamma \)构建完成。例子如下图：<div align="center"><br><img src="taskgraph.png" style="zoom:60%"><br><br></div><br>图中的每个task具有以下属性：<br><div align="center"><br><img src="taskproperty.png" style="zoom:50%"><br><br></div> 
+
+</li>
+</ol>
+<p>其中的exeTime是被存储起来的，遇到相同类型的operation总是采用这个数字。有了每个task的属性之后，就可以进行预测算法的运行了。<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>: Input: An operator graph G, <span class="selector-tag">a</span> device topology D, and <span class="selector-tag">a</span> parallelization strategy S.</span><br><span class="line"><span class="number">2</span>: T = BUILDTASKGRAPH(G, D, S)</span><br><span class="line"><span class="number">3</span>: readyQueue = &#123;&#125;<span class="comment">// a priority queue sorted by readyTime</span></span><br><span class="line"><span class="number">4</span>: <span class="keyword">for</span> t 属于 TN do  <span class="comment">// 先遍历一遍所有的task，将无依赖的task进栈。</span></span><br><span class="line"><span class="number">5</span>:      t<span class="selector-class">.state</span> = NOTREADY</span><br><span class="line"><span class="number">6</span>:      <span class="keyword">if</span> 该task没有前继结点 then</span><br><span class="line"><span class="number">7</span>:          t<span class="selector-class">.state</span> = READY</span><br><span class="line"><span class="number">8</span>:          readyQueue.enqueue(t)</span><br><span class="line"><span class="number">9</span>: while readyQueue != &#123;&#125; do  <span class="comment">// 然后对每个出栈的节点，计算结束时间并进行后继结点状态进行更新。</span></span><br><span class="line"><span class="number">10</span>:     Task t = readyQueue.dequeue()</span><br><span class="line"><span class="number">11</span>:     Device d = t.device</span><br><span class="line"><span class="number">12</span>:     t<span class="selector-class">.state</span> = COMPLETE</span><br><span class="line"><span class="number">13</span>:     t<span class="selector-class">.startTime</span> = max(t<span class="selector-class">.readyTime</span>, d<span class="selector-class">.last</span><span class="selector-class">.endTime</span>) </span><br><span class="line"><span class="number">14</span>:     t<span class="selector-class">.endTime</span> = t<span class="selector-class">.startTime</span> + t.exeTime</span><br><span class="line"><span class="number">15</span>:     d<span class="selector-class">.last</span> = t</span><br><span class="line"><span class="number">16</span>:     <span class="keyword">for</span> t的后继结点n do</span><br><span class="line"><span class="number">17</span>:         n<span class="selector-class">.readyTime</span> = max(n<span class="selector-class">.readyTime</span>, t.endTime)  <span class="comment">//更新readytime</span></span><br><span class="line"><span class="number">18</span>:         <span class="keyword">if</span> all tasks <span class="keyword">in</span> I(n) are COMPLETE then <span class="comment">//如果n的前继结点全都完成了，改变状态并进栈。</span></span><br><span class="line"><span class="number">19</span>:             n<span class="selector-class">.state</span> = READY</span><br><span class="line"><span class="number">20</span>:             readyQueue.enqueue(n)</span><br><span class="line"><span class="number">21</span>: return 最晚的t.endtime</span><br></pre></td></tr></table></figure></p>
+<p>因为是采用MCMC sample的方式进行采样的，所以可能前一种策略与后一种策略在整个模型框架下大同小异，这里设计了一个根据之前的graph实时更新的方式进行下一个graph的计算。节省了一些时间。具体就不细说了。举例如下：(r,s分别是readytime以及starttime)</p>
+<div align="center"><br><img src="algorithm.png" style="zoom:60%"><br><br></div> 
+
+<p><strong>Q4: 实验结果如何？</strong><br>至于实验部分，文章做了大量的对比实验，不一个个说了。无论是从运行效率还有精度方面都达到了很好的效果。<br>Flexflow在数据传输方面都降到了一个理想值，如下图所示：</p>
+<div align="center"><br><img src="simulator.png" style="zoom:60%"><br><br></div> 
+
+<p>但是，单循环task运行时间却不如”expert designed”的，为什么？<br><code>this is achieved by using model parallelism on each node, which disables any parallelism within each operator and results in imbalanced workload.</code><br>也就是说人工设置的时候通过模型并行虽然降低了每个iteration的运行时间，通信量却大大增加了，也导致了不平衡的数据流。在总体运行时间上不如Flexflow，如图a.</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>对于在一个device topology一个model，即一个operator graph根据不同的策略得到不同的task graph，对于不同的graph使用了一个simulator， 在规定的时间内不断更新，得到一个较优策略S。 总体框架如下：</p>
+<div align="center"><br><img src="overview.png" style="zoom:60%"><br><br></div> 
+
+<h2 id="Inspiration-and-question"><a href="#Inspiration-and-question" class="headerlink" title="Inspiration and question"></a>Inspiration and question</h2><p>实验证实了预测模型运行时间是完全可行的。</p>
+<div align="center"><br><img src="simulator.png" style="zoom:60%"><br><br></div> 
+
+<p><strong>问题： 为什么flexflow在end-to-end的model上表现的很好？</strong><br>在跑Inception-v3的时候训练时间比用tensorflow要快38%。为什么强调说是end-to-end的，可能是因为end-to-end一般含有比较多的特征抽取过程，而SOAP中attribute对每种特征都会进行处理，才会效果比较明显。</p>
 
                 
 
@@ -272,11 +293,11 @@ with reinforcement learning</code>。<br><strong>Q2: 对于一个operation(o)以
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#Machine learning" title="Machine learning">Machine learning</a>
-                        
                           <a class="tag" href="/tags/#SysML" title="SysML">SysML</a>
                         
                           <a class="tag" href="/tags/#Paper" title="Paper">Paper</a>
+                        
+                          <a class="tag" href="/tags/#Machine learning" title="Machine learning">Machine learning</a>
                         
                     </div>
                 </section>
